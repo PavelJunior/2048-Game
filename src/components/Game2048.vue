@@ -1,12 +1,19 @@
 <template>
     <div>
-        <div class="score">
-            <p v-if="!gameOver">Score: {{ score }}</p>
-            <p v-else>Game Over!<br> Your score: {{ score }}</p>
+        <div class="instruction-window" v-if="!gameStarted">
+            <h2>Use these keys to move blocks</h2>
+            <img src="src/img/keys.png" alt="" rel="preload">
+            <p>Press any button to continue</p>
         </div>
-        <div class="container">
-            <div v-for="(row, i) in nodes" class="row">
-                <div v-for="(node, j) in row" class="node" :style="nodeStyle(i, j)"><div>{{ node }}</div></div>
+        <div :style="blurBackground">
+            <div class="score">
+                <p v-if="!gameOver">Score: {{ score }}</p>
+                <p v-else>Game Over!<br> Your score: {{ score }}</p>
+            </div>
+            <div class="container">
+                <div v-for="(row, i) in nodes" class="row">
+                    <div v-for="(node, j) in row" class="node" :style="nodeStyle(i, j)"><div>{{ node }}</div></div>
+                </div>
             </div>
         </div>
     </div>
@@ -25,11 +32,13 @@
                 ],
                 allNodesUsed: false,
                 score: 0,
+                gameStarted: false,
                 gameOver: false
             }
         },
         methods: {
-            swipe(e){
+            moveBlocks(e){
+                this.gameStarted = true;
                 if(this.allNodesUsed){
                     this.checkGameStatus();
                 }
@@ -37,25 +46,25 @@
                 let callback = () => {changed = true};
                 let changed = false;
 
-                if(e.key === "ArrowLeft"){
+                if(e.key === "ArrowLeft" || e.key.toLowerCase() === "a"){
                     for(let i = 0; i <= 3; i+=1){
                         for(let j = 0; j <= 3; j+=1){
                             this.doSwipeForSingleNode(i, j, -1, false, callback);
                         }
                     }
-                } else if(e.key === "ArrowRight"){
+                } else if(e.key === "ArrowRight" || e.key.toLowerCase() === "d"){
                     for(let i = 0; i <= 3; i+=1){
                         for(let j = 3; j >= 0; j-=1){
                             this.doSwipeForSingleNode(i, j, 1, false, callback);
                         }
                     }
-                } else if(e.key === "ArrowUp"){
+                } else if(e.key === "ArrowUp" || e.key.toLowerCase() === "w"){
                     for(let i = 0; i <= 3; i+=1){
                         for(let j = 0; j <= 3; j+=1){
                             this.doSwipeForSingleNode(i, j, -1, true, callback);
                         }
                     }
-                } else if(e.key === "ArrowDown"){
+                } else if(e.key === "ArrowDown" || e.key.toLowerCase() === "s"){
                     for(let i = 3; i >= 0; i-=1){
                         for(let j = 0; j <= 3; j+=1){
                             this.doSwipeForSingleNode(i, j, 1, true, callback);
@@ -221,11 +230,20 @@
                         break;
                 }
                 return backgroundColor;
+            },
+            startGame(){
+                this.gameStarted = true;
+                window.removeEventListener('keydown', this.startGame);
+                window.addEventListener('keydown', this.moveBlocks);
             }
-
+        },
+        computed: {
+          blurBackground(){
+              return this.gameStarted === false ? {filter: 'blur(8px)'} : '';
+          }
         },
         mounted() {
-            window.addEventListener('keydown', this.swipe);
+            window.addEventListener('keydown', this.startGame);
         }
     }
 </script>
